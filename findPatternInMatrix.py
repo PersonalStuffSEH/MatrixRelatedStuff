@@ -1,4 +1,13 @@
 #! /usr/env python3
+"""
+usage: (this works for a 6x6 grid but can be easily adapted for others - just replace the 6 with the actual dimension)
+you type 0 and then the number of empty squares until the next selected cell
+you select a cell by clicking on it
+if you have smth like
+[ ] [ ] [ ] [x] [ ] [x]
+[ ] [ ] [x] [x] [x] [x]
+the code would be 01020000
+"""
 from __future__ import annotations
 import re
 import pygame
