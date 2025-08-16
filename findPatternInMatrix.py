@@ -1,0 +1,105 @@
+#! /usr/env python3
+from __future__ import annotations
+import re
+import pygame
+from pygame.color import Color
+from pygame.surface import Surface
+
+pygame.font.init()
+pygame.init()
+
+# type aliases that look good
+class Vec2(pygame.math.Vector2): ...
+class Vec3(pygame.math.Vector3): ...
+
+FPS = 60
+WIN_DIMS = (640, 480)
+FONT = pygame.font.SysFont("arial", 24)
+win = pygame.display.set_mode(WIN_DIMS)
+clock = pygame.time.Clock()
+
+run = True
+
+class Tile:
+    ENABLED = (255, 0, 0)
+    def __init__(self, col_vec: Vec3, i: int, position: tuple | list):
+        cbase = col_vec * (((i+1) % 2) if (i // 6) % 2 else i%2)  # checkerboard colouration
+        self.colour = Color(int(cbase.x), int(cbase.y), int(cbase.z), 255)
+        self.surf = Surface((Grid.BASE_SIZE, Grid.BASE_SIZE))
+        self.position = position
+        self.enabled = False # whether it was clicked
+    def enable(self):
+        self.surf.fill(Tile.ENABLED if self.enabled else self.colour)
+
+class Grid:
+    BASE_SIZE = 64
+    def __init__(self, col_vec: Vec3):
+        self.mask = [[0 for _ in range(6)] for _ in range(6)]  # 6[6[0]] array len 6 of an array len 6 of 0
+        self.surf = Surface((Grid.BASE_SIZE*6, Grid.BASE_SIZE*6))
+        self.tiles = {}  # for fast referencing when clicked
+
+        # populates the tiles
+        for i in range(36):
+            self.tiles[(i%6, i//6)] = Tile(col_vec, i, (i % 6 * Grid.BASE_SIZE, i // 6 * Grid.BASE_SIZE))
+    def populate(self):
+        for tile in self.tiles.values():
+            tile.enable() # i dont care how memory inefficient it is, this is a python proof of concept
+            self.surf.blit(tile.surf, tile.position)
+    def on_click(self, ms):
+        ms = Vec2(*ms) // Grid.BASE_SIZE # this normalises it (snaps to grid)
+        self.tiles[ms.x, ms.y].enabled = not self.tiles[ms.x, ms.y].enabled
+
+play_grid = Grid(Vec3(255, 255, 0))
+input_label = ""
+score = False
+
+def parse():
+    if not re.match("^[0-9]+$", input_label):  # ensures only numbers appear
+        return
+    #""" method one
+    reps = re.findall("[2-9]", input_label)
+    if not reps:
+        return
+    input_list = list(input_label)
+    for rep in reps: # this replaces n (rep, non 01 number) with 1 repeated n times
+        input_list[input_list.index(rep)] = "".join(map(str, ["." for _ in range(int(rep))]))
+        # that is used in the search
+
+    # because 1 signifies an empty space (there is 1 space between adjacent cards) i invert the enabled flag
+    grid = map(lambda t: int(not t.enabled), play_grid.tiles.values())
+    print(re.search("".join(input_list)+"+", "".join(map(str, grid))))
+    # ""
+
+def draw_onto_win():
+    play_grid.populate()
+    win.blit(play_grid.surf, (0, 0))
+
+    label = Surface((196, 32))
+    label.fill((0, 255, 255, 255))
+    win.blit(label, (Grid.BASE_SIZE*6 + 32, 32))
+    win.blit(FONT.render(input_label, True, (0, 0, 0, 255)), (Grid.BASE_SIZE*6 + 32, 32))
+    
+    pygame.display.update()
+
+def logic():
+    # print(list(grid))
+    parse()
+
+while run:
+    clock.tick(FPS)
+    keys  = pygame.key.get_pressed()
+    mouse = pygame.mouse.get_pos()
+    for event in pygame.event.get():
+        match event.type:
+            case pygame.QUIT:
+                run = False
+            case pygame.MOUSEBUTTONDOWN:
+                if play_grid.surf.get_rect().collidepoint(*mouse):
+                    play_grid.on_click(mouse)
+            case pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    input_label = input_label[:-1:]
+                else:
+                    input_label += event.unicode
+    logic()
+    draw_onto_win()
