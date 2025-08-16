@@ -1,4 +1,4 @@
-#! /usr/env python3
+#!/usr/bin/python3
 """
 usage: (this works for a 6x6 grid but can be easily adapted for others - just replace the 6 with the actual dimension)
 you type 0 and then the number of empty squares until the next selected cell
@@ -32,7 +32,7 @@ run = True
 class Tile:
     ENABLED = (255, 0, 0)
     def __init__(self, col_vec: Vec3, i: int, position: tuple | list):
-        cbase = col_vec * (((i+1) % 2) if (i // 6) % 2 else i%2)  # checkerboard colouration
+        cbase = col_vec * (((i+1) % 2) if (i // Grid.GRID_SIZE) % 2 else i%2)  # checkerboard colouration
         self.colour = Color(int(cbase.x), int(cbase.y), int(cbase.z), 255)
         self.surf = Surface((Grid.BASE_SIZE, Grid.BASE_SIZE))
         self.position = position
@@ -42,14 +42,15 @@ class Tile:
 
 class Grid:
     BASE_SIZE = 64
+    GRID_SIZE = 6
     def __init__(self, col_vec: Vec3):
-        self.mask = [[0 for _ in range(6)] for _ in range(6)]  # 6[6[0]] array len 6 of an array len 6 of 0
-        self.surf = Surface((Grid.BASE_SIZE*6, Grid.BASE_SIZE*6))
+        self.mask = [[0 for _ in range(Grid.GRID_SIZE)] for _ in range(Grid.GRID_SIZE)]  # 6[6[0]] array len 6 of an array len 6 of 0
+        self.surf = Surface((Grid.BASE_SIZE*Grid.GRID_SIZE, Grid.BASE_SIZE*Grid.GRID_SIZE))
         self.tiles = {}  # for fast referencing when clicked
 
         # populates the tiles
-        for i in range(36):
-            self.tiles[(i%6, i//6)] = Tile(col_vec, i, (i % 6 * Grid.BASE_SIZE, i // 6 * Grid.BASE_SIZE))
+        for i in range(Grid.GRID_SIZE * Grid.GRID_SIZE):
+            self.tiles[(i%Grid.GRID_SIZE, i//Grid.GRID_SIZE)] = Tile(col_vec, i, (i % Grid.GRID_SIZE * Grid.BASE_SIZE, i // Grid.GRID_SIZE * Grid.BASE_SIZE))
     def populate(self):
         for tile in self.tiles.values():
             tile.enable() # i dont care how memory inefficient it is, this is a python proof of concept
@@ -85,8 +86,8 @@ def draw_onto_win():
 
     label = Surface((196, 32))
     label.fill((0, 255, 255, 255))
-    win.blit(label, (Grid.BASE_SIZE*6 + 32, 32))
-    win.blit(FONT.render(input_label, True, (0, 0, 0, 255)), (Grid.BASE_SIZE*6 + 32, 32))
+    win.blit(label, (Grid.BASE_SIZE*Grid.GRID_SIZE + 32, 32))
+    win.blit(FONT.render(input_label, True, (0, 0, 0, 255)), (Grid.BASE_SIZE*Grid.GRID_SIZE + 32, 32))
     
     pygame.display.update()
 
