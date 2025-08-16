@@ -6,7 +6,11 @@ you select a cell by clicking on it
 if you have smth like
 [ ] [ ] [ ] [x] [ ] [x]
 [ ] [ ] [x] [x] [x] [x]
-the code would be 01020000
+the code would be 010 110000 (sel, not, sel, not not, sel, sel, sel, sel)
+out of convenience you can write 01020000
+(0 is whether the card is empty - it's a misnomer in the code (2am))
+if you dont like it remove the not and replace the hardcoded 1 in the parse function for generator
+happy days
 """
 from __future__ import annotations
 import re
@@ -78,6 +82,8 @@ def parse():
     # because 1 signifies an empty space (there is 1 space between adjacent cards) i invert the enabled flag
     grid = map(lambda t: int(not t.enabled), play_grid.tiles.values())
     print(re.search("".join(input_list)+"+", "".join(map(str, grid))))
+    # i know i can use something like (1){6} in regex for the number of repetitions instead of what im doing
+    # and that i should rename the flag to maybe disabled or so but it was 2 in the morning
     # ""
 
 def draw_onto_win():
