@@ -11,6 +11,13 @@ out of convenience you can write 01020000
 (0 is whether the card is empty - it's a misnomer in the code (2am))
 if you dont like it remove the not and replace the hardcoded 1 in the parse function for generator
 happy days
+
+last addendum:
+implementing it such that it doesnt wrap around is an exercise for the reader
+Dont flatten the array,
+    add 2 special symbols, (new line, directly below)
+    take the match index of the top one,
+    start searching at index below
 """
 from __future__ import annotations
 import re
